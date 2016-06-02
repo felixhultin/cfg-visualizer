@@ -1,0 +1,64 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Context-free Grammar Visualizer</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+
+<body>
+  <div id="parent">
+    <div id="editor">
+      <textarea placeholder="Write your context-free grammar here..."
+		spellcheck="false"></textarea>
+      <div id="sentenceParser">
+	<button id="randomize">randomize</button>
+	<input id="parser" placeholder="Enter sentence..."></input>
+      </div>
+    </div>
+    <div id="graphs">
+      <div id="syntaxTree">
+	<div id="changeTree">
+	  <button id="left">previous</button>
+	  <button id="right">next</button>
+	  <span></span>
+	</div>
+      </div>
+      <div id="trace">
+	<div id="options">
+	  <label><input checked="true" type="checkbox" id="active" value="active_checkbox">active</label><br>
+	  <label><input checked="true" type="checkbox" id="inactive" value="inactive_checkbox">inactive</label>
+	<div>
+      </div>
+    </div>
+  </div>
+
+  <!--
+      The following script elements are only structured this way
+      during development 
+      
+      TODO: Organize according to javascript namespace conventions and
+      combine into one (minimised) file for production.
+      
+    -->
+  
+  <script src="assets/js/libs/jquery-1.12.0.min.js"></script>
+  <script src="assets/js/libs/underscore-min.js"></script>
+  <script src="assets/js/libs/backbone-min.js"></script>
+  <!-- <script src="assets/js/libs/d3.v3.min.js"></script> -->
+  <script src="assets/js/libs/d3.js"></script>
+    
+  <script src="src/cfg/editor.js"></script>
+  <script src="src/cfg/grammar.js"></script>
+
+  <script src="src/parse/sentence-parser.js"></script>
+  <script src="src/parse/earley.js"></script>
+  <script src="src/parse/chart.js"></script>
+
+  <script src="src/graphs/graphs.js"></script>
+  <script src="src/graphs/syntaxtree.js"></script>
+  <script src="src/graphs/trace.js"></script>
+
+  <script src="src/application.js"></script>
+  
+</body>
+</html>
