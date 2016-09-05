@@ -15,11 +15,10 @@ var TraceTree = Backbone.View.extend({
     initialize: function(options) {
 
 	this.syntaxTree = options.syntaxTree;
-
-	var margin = {top: 20, right: 50, bottom: 10, left: 50};
-	this.margin = margin;
-	this.height = this.$el.height() - margin.top - margin.bottom;
-	this.width =  this.$el.width() - margin.right - margin.left;
+	
+	this.margin = {top: 20, right: 50, bottom: 10, left: 50};
+	this.height = this.$el.height() - this.margin.top - this.margin.bottom;
+	this.width =  this.$el.width() - this.margin.right - this.margin.left;
 
 	this.svg = d3.select(this.el).append('svg')
 	    .attr('width', this.width)
@@ -32,35 +31,30 @@ var TraceTree = Backbone.View.extend({
     render: function(chart) {
 
 	d3.select(this.el).select("div#options").style("display", "block");
-
-	this.chart = chart;
-	var chart = chart;
 	
 	this.svg.selectAll("*").remove();
+	this.chart = chart;
 
-	var syntaxTree = this.syntaxTree;
-	var forest = this.syntaxTree.forest;
-	
-	var margin = this.margin;
-	var width = this.width;
-	var height = this.height;
-	
-	var isActiveChecked = this.activeCheckbox.is(":checked");
-	var isInactiveChecked = this.inactiveCheckbox.is(":checked");
-	
-	var output = createLinks(chart, isActiveChecked, isInactiveChecked);
+	var margin = this.margin,
+	    width = this.width,
+	    height = this.height;
+
+	var syntaxTree = this.syntaxTree,
+	    forest = this.syntaxTree.forest;
+
+	var output = createLinks(chart);
 	
 	var links = output.links;
-	var maxLinkLevel = output.maxLevel;
-	var minLinkLevel = 4;
-
-	var labelHeight = 19; // TODO: Bind to font-size.
-	var labelsHeight = minLinkLevel * labelHeight;
+	var maxLevel = output.maxLevel !== 0 ? output.maxLevel : 1;
+	var minLevel = 4;	
 	
-	var linkHeight = (height - margin.top - margin.bottom - labelsHeight) / maxLinkLevel;
+	var labelHeight = 19, // TODO: Bind to font-size.
+	    labelsHeight = minLevel * labelHeight;
 	
-	var nodeDistance = width / (chart.words.length + 1);
-	var nodesHeight = height - labelsHeight;
+	var linkHeight = (height - margin.top - margin.bottom - labelsHeight) / maxLevel;
+	
+	var nodeDistance = width / (chart.words.length + 1),
+	    nodesHeight = height - labelsHeight;
 	
 	var nodes = [];
 	for (var i = 0; i < chart.words.length + 1; i++) {
@@ -68,14 +62,23 @@ var TraceTree = Backbone.View.extend({
 	    nodes.push(node);
 	}
 	
+	var that = this;
 	var link = this.svg.selectAll(".link")
 	    .data(links)
 	    .enter()
 	    .append("g")
-	    .attr("class", "link");
+	    .attr("class", "link")
+	    .attr("visibility", function(d) {
+		if (!that.activeCheckbox.is(":checked")&& d.isActive) {
+	    	    return "hidden";
+	    	}
+	    	if (!that.inactiveCheckbox.is(":checked") && !d.isActive) {
+	    	    return "hidden";
+		}
+		return "visible";
+	    });
 	
 	link.append("text")
-	    .filter(function (d) {return d.height < 4 || d.source !== d.end; })
 	    .attr("font-size", 12)
 	    .attr("font-style", "sans-serif")
 	    .attr("transform", function(d, i) {
@@ -97,14 +100,12 @@ var TraceTree = Backbone.View.extend({
 		return d.height === 3 && d.source === d.target ? "..." : d.name;
 	    })
 	    .on("mouseover", mouseover)
-	    .on("mouseout", function(d) {
-		syntaxTree.render(forest);
-	    });
+	    .on("mouseout",  mouseout);
 	
-	var spanningLinks = link
-	    .filter(function(d) {return d.source !== d.target});
-
-	spanningLinks.append("path")
+	link
+	    .filter(function(d) {
+		return d.source !== d.target})
+	    .append("path")
 	    .attr("class", "link")
 	    .attr("d", elbow)
 	    .attr("stroke-dasharray",
@@ -135,77 +136,50 @@ var TraceTree = Backbone.View.extend({
 	    .attr("y", function(d) { return d.y + (labelHeight / 4); })
 	    .text(function(d, i) {return i+1;});
 
-
-	function createLinks(chart, isActiveChecked, isInactiveChecked) {
+	function createLinks(chart) {
 
 	    var wordLinks = chart.words.map(function(w, i) {
 		return {source: i, target: i+1, name: w, height: 0, isWord: true};
 	    });
 	    
 	    var nodeHeights = Array.apply(null, Array(chart.words.length + 1))
-		.map(Number.prototype.valueOf, 1);
-	    var idNodeHeights = Array.apply(null, Array(chart.words.length + 1))
-		.map(Number.prototype.valueOf, 1);
-
-	    var newidNodeHeights = Array.apply(null, Array(chart.words.length + 1))
-		.map(function(e) {return Array.apply(null, Array(chart.words.length + 1))
-				  .map(Number.prototype.valueOf, 0);});
-	    var maxLevel = 0;
-	    
+		.map(function(e) {return {height: 0, depth: 0}});	    
 	    
 	    var mergedStates = [].concat.apply([], chart.states);
 	    mergedStates.shift(); // Removes dummy state.
-	    if (!isActiveChecked || !isInactiveChecked) {
-		mergedStates = filterStates(mergedStates, isActiveChecked, isInactiveChecked);
-	    }
 	    
 	    var stateLinks = mergedStates.map(function(s) {
-		//var height = s.start === s.end ? idNodeHeights[s.end]++ : nodeHeights[s.start]++;
-
-		var currentHeight = newidNodeHeights[s.start][s.end];		
-		for (var i = s.start; i < s.end + 1; i++) {
-		    for (var i2 = i+1; i2 < s.end+1; i2++) {
-			var possibleHeight = newidNodeHeights[i][i2];
-			if (possibleHeight >= currentHeight) {
-			    currentHeight = possibleHeight;
+		if (s.start ===  s.end) {
+		    var height = ++nodeHeights[s.end].depth;
+		} else {
+		    var height = ++nodeHeights[s.end].height;
+		    if ( (s.end - s.start) > 1 ) {
+			for (var i = s.start+1; i < s.end; i++) {
+			    if (nodeHeights[i].height >= height) {
+				nodeHeights[i].height += 1;
+				height = nodeHeights[i].height;
+			    }
 			}
+			nodeHeights[s.end].height = height;
 		    }
 		}
-		
-		currentHeight++;
-		if (currentHeight > newidNodeHeights[s.start][s.end]) {
-		    newidNodeHeights[s.start][s.end] = currentHeight; 
-		}
-		maxLevel = currentHeight > maxLevel ? currentHeight : maxLevel;
-
-
 		
 		var link = { source: s.start,
 			     target: s.end,
 			     name: s.lhs + s.idx,
 			     state: s,
-			     isActive: s.rhs.length !== s.dot,
-			     height: currentHeight
-			     //height: height
+			     isActive: s.isIncomplete,
+			     height: height,
 			   };
 		return link;
 	    });
-	    
-	    return {links: wordLinks.concat(stateLinks),
-		    //maxLevel: Math.max.apply(Math, nodeHeights),
-		    maxLevel: maxLevel,
-		    minLevel: Math.max.apply(Math, idNodeHeights)};
-	};		
 
-	function filterStates(states, isActive, isInactive) {
-	    if(!isActive) {
-		states = states.filter(function(s) {return s.isIncomplete});
-	    }
-	    if(!isInactive) {
-		states = states.filter(function(s) {return !s.isIncomplete});
-	    }
-	    return states;
-	} 
+	    return {links: wordLinks.concat(stateLinks),
+		    maxLevel: Math.max.apply( Math,
+					      nodeHeights.map(function(o)
+							      {return o.height}) ) 
+		   }
+	};
 	
 	function mouseover(d) {
 	    var parseTree = earleyWalk(d.state);
@@ -218,6 +192,14 @@ var TraceTree = Backbone.View.extend({
 		parseTree.children = parseTree.children.concat(incompleteNodes);
 	    }
 	    syntaxTree.render([parseTree]);
+	    
+
+	}
+
+	function mouseout(d) {
+	    syntaxTree.render(forest);
+
+
 	}
 	
 	function elbow(d, i) {
@@ -237,6 +219,6 @@ var TraceTree = Backbone.View.extend({
 	
 	return this;
 	
-    },
+    }
 
 });
