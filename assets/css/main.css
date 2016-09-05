@@ -28,7 +28,7 @@ div#parent div#editor textarea:focus ~ div input#parser {
 }
 
 div#parent div#editor textarea{
-    font: 12px sans-serif;
+    font: 16px sans-serif;
     width: 100%;
     height: 86%;
     border-right: 2px solid black;
@@ -43,15 +43,12 @@ div#parent div#editor button#randomize{
     float:right;
     right:5%;
     border-right: 2px solid black;
-
-
-
-
 }
 
 
 
 div#parent div#editor input#parser {
+    font-size: 16px;
     border: 2px solid black;
     border-bottom: none;
     border-left: none;
