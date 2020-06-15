@@ -61,7 +61,6 @@ function earleyRecognize(sentence, grammar, chart) {
 					 entry.dot + 1, entry.start,
 					 state.end,
 					 "Completer");
-		newState.backtrace = entry.backtrace.concat([state]);
 		chart.add(newState, state.end);
 	    }
 	}

@@ -50,15 +50,13 @@ function State(lhs, rhs, dot, start, end, func) {
     this.end = end;
     this.nextCat = this.rhs[dot];
     this.func = func;
-    this.backtrace = [];
     this._hash = lhs + "->" + rhs + dot + start + end;
     this.isIncomplete = !(rhs.length === dot);
 
     this.prettyPrint = function() {
 	var rhs = this.rhs.slice();
 	rhs.splice(this.dot, 0, '.');
-	var backtrace = this.backtrace.map(function (s) {return s.idx;});
 	return "s" + this.idx + " " + this.lhs + " -> " +
-	    rhs.join(" ") + " [" + this.start + ", " + this.end + "] " + this.func + " (" + backtrace + ")";
+	    rhs.join(" ") + " [" + this.start + ", " + this.end + "] " + this.func;
     };
 }
