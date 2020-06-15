@@ -177,6 +177,10 @@ div#syntaxTree .link {
     stroke:red;
 }
 
+.highlight, .highlight * {
+    stroke: red !important;
+}
+
 .link text {
     font: 12px sans-serif;
     cursor: pointer;

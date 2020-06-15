@@ -31,6 +31,8 @@ var TraceTree = Backbone.View.extend({
     render: function(chart) {
 
 	d3.select(this.el).select("div#options").style("display", "block");
+
+        d3.select(this.el).on("click", click_canvas);
 	
 	this.svg.selectAll("*").remove();
 	this.chart = chart;
@@ -99,8 +101,7 @@ var TraceTree = Backbone.View.extend({
 	    .text(function(d) {
 		return d.height === 3 && d.source === d.target ? "..." : d.name;
 	    })
-	    .on("mouseover", mouseover)
-	    .on("mouseout",  mouseout);
+	    .on("click", click_link);
 	
 	link
 	    .filter(function(d) {
@@ -174,21 +175,28 @@ var TraceTree = Backbone.View.extend({
 		return link;
 	    });
 
-	    return {links: wordLinks.concat(stateLinks),
-		    maxLevel: Math.max.apply( Math,
-					      nodeHeights.map(function(o)
-							      {return o.height}) ) 
-		   }
+            return { links: wordLinks.concat(stateLinks),
+                     maxLevel: Math.max.apply(Math, nodeHeights.map(function(o){return o.height})) 
+	           };
 	};
 	
-        function mouseover(d) {
+        function highlight(link) {
+            d3.selectAll(".highlight").classed('highlight', false);
+            if (link) {
+                d3.select(link).classed('highlight', true);
+            }
+        }
+
+        function click_link(d) {
+            highlight(d3.event.target.parentNode);
 	    var earleyParser = new EarleyParser(chart);
 	    var dForest = earleyParser.parse(d.state);
-            console.log(dForest.length, d.state.prettyPrint());
 	    syntaxTree.render(dForest);
+            d3.event.stopPropagation();
 	}
 
-	function mouseout(d) {
+	function click_canvas(d) {
+            highlight();
 	    syntaxTree.render(forest);
 	}
 	
