@@ -181,25 +181,15 @@ var TraceTree = Backbone.View.extend({
 		   }
 	};
 	
-	function mouseover(d) {
-	    var parseTree = earleyWalk(d.state);
-	    if (d.state.isIncomplete) {
-		var incompleteNodes = d.state.rhs
-		    .slice(d.state.dot)
-		    .map(function(name) {
-			return {name: name, isIncomplete:true};
-		    });
-		parseTree.children = parseTree.children.concat(incompleteNodes);
-	    }
-	    syntaxTree.render([parseTree]);
-	    
-
+        function mouseover(d) {
+	    var earleyParser = new EarleyParser(chart);
+	    var dForest = earleyParser.parse(d.state);
+            console.log(dForest.length, d.state.prettyPrint());
+	    syntaxTree.render(dForest);
 	}
 
 	function mouseout(d) {
 	    syntaxTree.render(forest);
-
-
 	}
 	
 	function elbow(d, i) {

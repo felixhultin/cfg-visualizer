@@ -80,19 +80,37 @@ function EarleyParser(chart) {
 }
 
 
-EarleyParser.prototype.parse = function() {
-
-    var lastWordIdx = this.chart.states.length - 1;
-
-    var words = this.words;
-    var roots = this.chart.states[lastWordIdx]
-	.filter(function(s)
-		{return s.lhs === this.chart.startCat && s.start === 0 && s.end === lastWordIdx && s.dot === s.rhs.length});
+EarleyParser.prototype.parse = function(state) {
+    if (state) {
+        if (state.isIncomplete) {
+            var incompleteNodes = state.rhs.slice(state.dot)
+                .map(function(name) {return {name:name, isIncomplete:true}});
+            state = new State(state.lhs, state.rhs.slice(0, state.dot),
+                              state.dot, state.start, state.end, state.func)
+        }
+        var roots = [state];
+    } else {
+        var lhs = this.chart.startCat, start = 0, end = this.chart.states.length - 1;
+        var roots = this.chart.states[end].filter(function(s){
+            return s.lhs === lhs && s.start === start && s.end === end && s.dot === s.rhs.length;
+        });
+    }
     
-    var that = this;
-    var parses = roots.map(function(rs) {return that.parseForest(rs);});
-    return [].concat.apply([], parses);
-};
+    var parses = [];
+    for (var i = 0; i < roots.length; i++) {
+        var rs = roots[i];
+        var forest = this.parseForest(rs);
+        for (var j = 0; j < forest.length; j++) {
+            var tree = forest[j];
+            if (incompleteNodes) {
+                tree.children.push.apply(tree.children, incompleteNodes);
+            }
+            parses.push(tree);
+        }
+    }
+    return parses;
+}
+
 
 EarleyParser.prototype.parseForest = function(rootState) {
     var forest = [];
@@ -197,11 +215,4 @@ function cartesianProductOf() {
 	    });
         }), true);
     }, [ [] ]);
-}
-
-function earleyWalk(state) {
-    if (state.backtrace.length === 0) {
-	return { name: state.lhs, children: [ {name: state.rhs[0]} ] };
-    }
-    return { name: state.lhs, children: state.backtrace.map(earleyWalk) }
 }
