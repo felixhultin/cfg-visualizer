@@ -1,5 +1,6 @@
-function Chart(words) {
+function Chart(words, startCat) {
 
+    this.startCat = startCat;
     this.words = words;
     this.length = 0;
 

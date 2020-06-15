@@ -5,6 +5,10 @@ var Rule = Backbone.Model.extend({
 var Grammar = Backbone.Collection.extend({
     model: Rule,
 
+    startCat : function() {
+        return this.models[0].get('lhs');
+    },
+
     isTerminal: function() {
 	
     },

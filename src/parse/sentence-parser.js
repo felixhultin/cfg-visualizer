@@ -41,7 +41,7 @@ var SentenceParser = Backbone.View.extend({
 
 function generateSentence(grammar, node) {
     if (typeof node === "undefined") {
-	var node = randomValueOf(grammar.where({lhs:"S"}));
+	var node = randomValueOf(grammar.where({lhs: grammar.startCat()}));
     }
     var rhs = node.get('rhs');
     if (node.get('isPos') === true) {

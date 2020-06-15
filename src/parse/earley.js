@@ -2,9 +2,8 @@ function earleyRecognize(sentence, grammar, chart) {
         
     var words = sentence.split(" ");
 
-    var chart = new Chart(words);
-    var dummyState = new State(undefined,
-				[grammar.models[0].get('lhs')], 0, 0, 0);
+    var chart = new Chart(words, grammar.startCat());
+    var dummyState = new State(undefined, [chart.startCat], 0, 0, 0);
     chart.add(dummyState, 0);
 
     var agenda = new Set();
@@ -88,7 +87,7 @@ EarleyParser.prototype.parse = function() {
     var words = this.words;
     var roots = this.chart.states[lastWordIdx]
 	.filter(function(s)
-		{return s.lhs === 'S' && s.start === 0 && s.end === lastWordIdx && s.dot === s.rhs.length});
+		{return s.lhs === this.chart.startCat && s.start === 0 && s.end === lastWordIdx && s.dot === s.rhs.length});
     
     var that = this;
     var parses = roots.map(function(rs) {return that.parseForest(rs);});
