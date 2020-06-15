@@ -104,11 +104,11 @@ function createRule(line, row) {
     }
     
     var lhs = parts[0].trim();
-    if (lhs.split(" ").length > 1) {
+    if (lhs.split(/\s+/).length > 1) {
 	return "Multiple symbols on left-hand side is not allowed.";
     }
     
-    var rhs = parts[1].replace(/[\s\|]+/g, " ").trim().split(" ");
+    var rhs = parts[1].trim().split(/[\s\|]+/);
     
     return {'lhs':lhs, 'rhs':rhs, 'id': row};   
 

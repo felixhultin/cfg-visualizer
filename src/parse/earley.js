@@ -1,6 +1,6 @@
 function earleyRecognize(sentence, grammar, chart) {
         
-    var words = sentence.split(" ");
+    var words = sentence.trim().split(/\s+/);
 
     var chart = new Chart(words, grammar.startCat());
     var dummyState = new State(undefined, [chart.startCat], 0, 0, 0);
