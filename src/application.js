@@ -56,5 +56,6 @@ var graph = new Graph({el: "div#parent div#graphs"});
 var sentenceParser = new SentenceParser({
     el: "div#editor div#sentenceParser",
     collection: grammar,
-    graph: graph});
+    graph: graph
+});
 

@@ -10,13 +10,13 @@ var Graph = Backbone.View.extend({
     activeView : undefined,
 
     initialize: function () {
-	this.syntaxTree = new SyntaxTree({el: "div#syntaxTree"});
-	this.trace = new TraceTree({el: "div#trace", syntaxTree: this.syntaxTree});
+        this.syntaxTree = new SyntaxTree({el: "div#syntaxTree"});
+        this.trace = new TraceTree({el: "div#trace", syntaxTree: this.syntaxTree});
     },
 
     render : function(chart, parseTree) {
-	this.syntaxTree.render(parseTree);
-	this.trace.render(chart);
+        this.syntaxTree.render(parseTree);
+        this.trace.render(chart);
     }
 
 });
